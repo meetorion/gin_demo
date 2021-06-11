@@ -1,34 +1,32 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"fmt"
+	"html/template"
 	"net/http"
 )
 
-func sayHello(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "Hello golang!",
-	})
+func sayHello(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("./hello.tmpl")
+	if err != nil {
+		fmt.Printf("Parse template failed,err:%v", err)
+		return
+	}
+
+	name := "小王子"
+	err = t.Execute(w, name)
+	if err != nil {
+		fmt.Printf("render templete failed,err=%v", err)
+		return
+	}
 }
 
 func main() {
-	r := gin.Default()
-	r.GET("/hello", sayHello)
-	r.POST("/book", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"method": "POST",
-		})
-	})
-	r.PUT("/book", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"method": "PUT",
-		})
-	})
-	r.DELETE("/book", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"method": "DELETE",
-		})
-	})
+	http.HandleFunc("/", sayHello)
+	err := http.ListenAndServe(":9000", nil)
+	if err != nil {
+		fmt.Printf("HTTP Server start failed, err:%v", err)
+		return
+	}
 
-	r.Run()
 }
